@@ -17,9 +17,9 @@ public record Order(
         Long id,
         String gameId,
         String gameTitle,
-        double gamePrice,
+        Double gamePrice,
         int quantity,
-        OrderStatus orderStatus,
+        OrderStatus status,
         @CreatedDate
         Date created,
         @LastModifiedDate
@@ -27,7 +27,11 @@ public record Order(
         @Version
         int version
 ) {
-    public static Order of(String gameId, String gameTitle, double gamePrice, int quantity, OrderStatus orderStatus) {
-        return new Order(null, gameId, gameTitle,gamePrice, quantity, orderStatus, null, null, 0);
+    public static Order of(String gameId, String gameTitle, Double gamePrice, int quantity, OrderStatus orderStatus) {
+        return new Order(null, gameId, gameTitle, gamePrice, quantity, orderStatus, null, null, 0);
+    }
+
+    public static Order rejected(String gameId, int quantity) {
+        return Order.of(gameId, null, null, quantity, OrderStatus.REJECTED);
     }
 }
