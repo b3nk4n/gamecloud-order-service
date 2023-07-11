@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.Date;
 
-@Table("orders") // configures the mapping between the "Order" object and the "orders" table
+@Table("order_table")
 public record Order(
         /*
          * The technical ID (surrogate key) for persistence domain.
