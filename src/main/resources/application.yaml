@@ -1,0 +1,20 @@
+server:
+  port: 9002
+  shutdown: graceful
+  netty:
+    connection-timeout: 3s
+    idle-timeout: 20s
+
+spring:
+  application:
+    name: order-service
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  r2dbc:
+    username: user
+    password: password
+    url: r2dbc:postgresql://localhost:5432/gamecloud_order
+    pool:
+      max-create-connection-time: 3s
+      initial-size: 5
+      max-size: 10

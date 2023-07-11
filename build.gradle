@@ -15,6 +15,13 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    compileOnly {
+        // annotations require a `./gradlew clean build` to trigger metadata generation to take effect as intelli sense in IDE
+        extendsFrom annotationProcessor
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -27,6 +34,20 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:r2dbc'
+}
+
+// configure Buildpacks
+bootBuildImage {
+    imageName = "gamecloud-${project.name}"
+    environment = ["BP_JVM_VERSION": "17.*"]
+
+    docker {
+        publishRegistry {
+            username = project.findProperty("registryUsername")
+            password = project.findProperty("registryToken")
+            url = project.findProperty("registryUrl")
+        }
+    }
 }
 
 tasks.named('test') {
