@@ -22,3 +22,6 @@ spring:
     user: ${spring.r2dbc.username}
     password: ${spring.r2dbc.password}
     url: jdbc:postgresql://localhost:5432/gamecloud_order
+
+client:
+  catalog-service-uri: http://localhost:9001
