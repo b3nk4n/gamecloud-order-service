@@ -4,10 +4,12 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.net.URI;
+import java.time.Duration;
 
 @ConfigurationProperties(prefix = "client")
 public record ClientConfig(
         @NotNull
-        URI catalogServiceUri
+        URI catalogServiceUri,
+        Duration timeout
 ) {
 }

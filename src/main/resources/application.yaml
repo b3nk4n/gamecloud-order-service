@@ -25,3 +25,7 @@ spring:
 
 client:
   catalog-service-uri: http://localhost:9001
+  timeout: 3s
+  retry:
+    max-attempts: 3
+    min-backoff: 250ms
