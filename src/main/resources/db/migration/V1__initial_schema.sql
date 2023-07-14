@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS order_table;
 CREATE TABLE order_table
 (
     id              BIGSERIAL PRIMARY KEY NOT NULL,
