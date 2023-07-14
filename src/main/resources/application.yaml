@@ -10,6 +10,19 @@ spring:
     name: order-service
   lifecycle:
     timeout-per-shutdown-phase: 20s
+  config:
+    import: "optional:configserver:"
+    cloud:
+      config:
+        uri: http://localhost:8888
+        request-connect-timeout: 5000
+        request-read-timeout: 3000
+        fail-fast: false
+        retry:
+          max-attempts: 5
+          initial-interval: 1000
+          max-interval: 5000
+          multiplier: 1.5
   r2dbc:
     username: user
     password: password
