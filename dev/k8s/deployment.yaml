@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: gamecloud-order-service
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                # Delay SIGTERM signal to Pod, so that K8s has enough time to inform other components. To ensure that e.g. the
+                # service registry is updated, no requests are forward to the terminating pod anymore due to race condition.
+                command: [ "sh", "-c", "sleep 3" ]
+          ports:
+            - containerPort: 9002
+          env:
+            - name: BPL_JVM_THREAD_COUNT
+              value: "50"
+            - name: SPRING_R2DBC_URL
+              value: r2dbc:postgresql://gamecloud-postgres/gamecloud_order
+            - name: SPRING_FLYWAY_URL
+              value: jdbc:postgresql://gamecloud-postgres/gamecloud_order
+            - name: SPRING_CLOUD_CONFIG_URI
+              value: http://config-service
+            - name: CLIENT_CATALOG_SERVICE_URI
+              value: http://catalog-service
