@@ -49,7 +49,7 @@ class OrderRepositoryTest {
 
     @Test
     void createRejectedOrder() {
-        var rejectedOrder = Order.rejected("9999", 9);
+        final var rejectedOrder = Order.rejected("9999", 9);
 
         StepVerifier
                 .create(orderRepository.save(rejectedOrder))
@@ -59,8 +59,8 @@ class OrderRepositoryTest {
 
     @Test
     void createAcceptedOrder() {
-        var game = new Game("1234", "FIFA 23", GameGenre.SPORTS, "EA Sports", 39.99);
-        var acceptedOrder = Order.accepted(game, 1);
+        final var game = new Game("1234", "FIFA 23", GameGenre.SPORTS, "EA Sports", 39.99);
+        final var acceptedOrder = Order.accepted(game, 1);
 
         StepVerifier
                 .create(orderRepository.save(acceptedOrder))
