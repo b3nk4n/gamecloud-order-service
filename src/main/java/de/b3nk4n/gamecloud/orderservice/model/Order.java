@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.awt.print.Book;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Table("order_table")
@@ -22,9 +23,9 @@ public record Order(
         int quantity,
         OrderStatus status,
         @CreatedDate
-        Date created,
+        LocalDateTime created,
         @LastModifiedDate
-        Date lastModified,
+        LocalDateTime lastModified,
         @Version
         int version
 ) {
@@ -38,5 +39,9 @@ public record Order(
 
     public static Order accepted(Game game, int quantity) {
         return Order.of(game.gameId(), game.title(), game.price(), quantity, OrderStatus.ACCEPTED);
+    }
+
+    public static Order dispatched(Order order) {
+        return Order.of(order.gameId(), order.gameTitle(), order.gamePrice(), order.quantity, OrderStatus.DISPATCHED);
     }
 }
