@@ -1,0 +1,6 @@
+# to enable Spring logs while testing, which can be helpful when debugging. Such as, why the JWT claim conversion did not work
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE

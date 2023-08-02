@@ -49,6 +49,11 @@ spring:
         acceptOrder-out-0:
           producer:
             transacted: true # that event publishing joins the existing transaction (Saga pattern)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/GameCloud
 
   rabbitmq:
     host: localhost

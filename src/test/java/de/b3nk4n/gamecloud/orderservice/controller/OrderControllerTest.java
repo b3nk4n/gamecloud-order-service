@@ -1,11 +1,16 @@
 package de.b3nk4n.gamecloud.orderservice.controller;
 
+import de.b3nk4n.gamecloud.orderservice.config.SecurityConfig;
 import de.b3nk4n.gamecloud.orderservice.model.*;
 import de.b3nk4n.gamecloud.orderservice.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
@@ -13,12 +18,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 @WebFluxTest(OrderController.class)
+@Import(SecurityConfig.class)
 class OrderControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
     @MockBean
     private OrderService orderService;
+
+    /**
+     * Mock the {@link ReactiveJwtDecoder} so that the application does not try to call Keycloak and get the public key
+     * for decoding the Access Token.
+     */
+    @MockBean
+    private ReactiveJwtDecoder jwtDecoder;
 
     @Test
     void whenGameNotAvailableThenRejectOrder() {
@@ -29,6 +42,9 @@ class OrderControllerTest {
                 .willReturn(Mono.just(expectedOrder));
 
         webTestClient
+                .mutateWith(SecurityMockServerConfigurers
+                        .mockJwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_employee")))
                 .post()
                 .uri("/orders")
                 .bodyValue(orderRequest)
@@ -50,6 +66,9 @@ class OrderControllerTest {
                 .willReturn(Mono.just(expectedOrder));
 
         webTestClient
+                .mutateWith(SecurityMockServerConfigurers
+                        .mockJwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_employee")))
                 .post()
                 .uri("/orders")
                 .bodyValue(orderRequest)
