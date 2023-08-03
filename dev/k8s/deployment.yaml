@@ -37,3 +37,5 @@ spec:
               value: http://config-service
             - name: CLIENT_CATALOG_SERVICE_URI
               value: http://catalog-service
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: http://gamecloud-keycloak/realms/GameCloud
