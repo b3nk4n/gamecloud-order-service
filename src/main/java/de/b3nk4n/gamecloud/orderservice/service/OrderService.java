@@ -29,8 +29,8 @@ public class OrderService {
         this.streamBridge = streamBridge;
     }
 
-    public Flux<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public Flux<Order> getAllOrders(String username) {
+        return orderRepository.findAllByCreator(username);
     }
 
     @Transactional // following the Saga pattern, that persisting to the DB and sending an event about it should happen atomically

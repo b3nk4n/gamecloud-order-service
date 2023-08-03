@@ -135,9 +135,9 @@ class OrderServiceApplicationTest {
                 .expectBody(Order.class)
                 .returnResult()
                 .getResponseBody();
+
         assertThat(expectedOrder).isNotNull();
-        assertThat(objectMapper.readValue(outputDestination.receive().getPayload(), OrderAcceptedMessage.class))
-                .isEqualTo(new OrderAcceptedMessage(expectedOrder.id()));
+        assertThat(receiveOrderAcceptedMessage()).isEqualTo(new OrderAcceptedMessage(expectedOrder.id()));
 
         webTestClient.get()
                 .uri("/orders")
@@ -146,7 +146,9 @@ class OrderServiceApplicationTest {
                 .expectStatus()
                 .is2xxSuccessful()
                 .expectBodyList(Order.class).value(orders ->
-                        assertThat(orders.stream().filter(order -> order.gameId().equals(game.gameId())).findAny())
+                        assertThat(orders.stream()
+                                .filter(order -> order.gameId().equals(game.gameId()))
+                                .findAny())
                                 .isNotEmpty());
     }
 
@@ -168,6 +170,102 @@ class OrderServiceApplicationTest {
                 .bodyValue(orderRequest)
                 .exchange()
                 .expectStatus().isForbidden();
+    }
+
+    @Test
+    void whenGetOwnOrdersThenReturn() throws IOException {
+        final var gameId = "1234";
+        final var game = new Game(gameId, "FIFA 23", GameGenre.SPORTS, "EA Sports", 39.99);
+        final var orderRequest = new OrderRequest(gameId, 1);
+
+        given(catalogClient.getGameByGameId(gameId)).willReturn(Mono.just(game));
+
+        final var expectedOrder = webTestClient.post()
+                .uri("/orders")
+                .headers(headers -> headers.setBearerAuth(vanessaToken.accessToken()))
+                .bodyValue(orderRequest)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody(Order.class)
+                .returnResult()
+                .getResponseBody();
+        
+        assertThat(expectedOrder).isNotNull();
+        assertThat(receiveOrderAcceptedMessage()).isEqualTo(new OrderAcceptedMessage(expectedOrder.id()));
+
+        webTestClient.get().uri("/orders")
+                .headers(headers -> headers.setBearerAuth(vanessaToken.accessToken()))
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBodyList(Order.class)
+                .value(orders -> {
+                    final var orderIds = orders.stream()
+                            .map(Order::id)
+                            .toList();
+                    assertThat(orderIds).contains(expectedOrder.id());
+                });
+    }
+
+    @Test
+    void whenGetOrdersThenOnlyReturnOwnOrders() throws IOException {
+        final var gameId = "1234";
+        final var game = new Game(gameId, "FIFA 23", GameGenre.SPORTS, "EA Sports", 39.99);
+        final var orderRequest = new OrderRequest(game.gameId(), 1);
+
+        given(catalogClient.getGameByGameId(gameId)).willReturn(Mono.just(game));
+
+        final var vanessaOrder = webTestClient.post()
+                .uri("/orders")
+                .headers(headers -> headers.setBearerAuth(vanessaToken.accessToken()))
+                .bodyValue(orderRequest)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody(Order.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(vanessaOrder).isNotNull();
+        assertThat(receiveOrderAcceptedMessage()).isEqualTo(new OrderAcceptedMessage(vanessaOrder.id()));
+
+        final var otherGameId = "2345";
+        final var otherGame = new Game(otherGameId, "NHL 23", GameGenre.SPORTS, "EA Sports", 29.99);
+        final var otherOrderRequest = new OrderRequest(otherGame.gameId(), 2);
+
+        given(catalogClient.getGameByGameId(otherGameId)).willReturn(Mono.just(otherGame));
+
+        final var bennyOrder = webTestClient.post()
+                .uri("/orders")
+                .headers(headers -> headers.setBearerAuth(bennyToken.accessToken()))
+                .bodyValue(otherOrderRequest)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody(Order.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(bennyOrder).isNotNull();
+        assertThat(receiveOrderAcceptedMessage()).isEqualTo(new OrderAcceptedMessage(bennyOrder.id()));
+
+        webTestClient.get().uri("/orders")
+                .headers(headers -> headers.setBearerAuth(vanessaToken.accessToken()))
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBodyList(Order.class)
+                .value(orders -> {
+                    // TODO ensure that each test method is executed independently, which is not the case when the testcontainer
+                    //      is declared as STATIC. Which is however required when using @DynamicPropertySource.
+                    // assertThat(orders).hasSize(1);
+
+                    final var orderIds = orders.stream()
+                            .map(Order::id)
+                            .toList();
+                    assertThat(orderIds).contains(vanessaOrder.id());
+                    assertThat(orderIds).doesNotContain(bennyOrder.id());
+                });
+    }
+
+    private OrderAcceptedMessage receiveOrderAcceptedMessage() throws IOException {
+        return objectMapper.readValue(outputDestination.receive().getPayload(), OrderAcceptedMessage.class);
     }
 
     private record KeycloakToken(String accessToken) {

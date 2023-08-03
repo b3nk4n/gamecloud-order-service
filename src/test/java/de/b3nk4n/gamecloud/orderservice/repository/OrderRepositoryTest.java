@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -70,6 +71,33 @@ class OrderRepositoryTest {
                     assertThat(order.gameTitle()).isEqualTo(game.title());
                     assertThat(order.gamePrice()).isEqualTo(game.price());
                     assertThat(order.quantity()).isEqualTo(acceptedOrder.quantity());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void whenCreateOrderNotAuthenticatedThenNoAuditData() {
+        final var game = new Game("1234", "FIFA 23", GameGenre.SPORTS, "EA Sports", 39.99);
+        final var order = Order.accepted(game, 1);
+
+        StepVerifier.create(orderRepository.save(order))
+                .assertNext(savedOrder -> {
+                    assertThat(savedOrder.creator()).isNull();
+                    assertThat(savedOrder.lastModifier()).isNull();
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @WithMockUser("b3nk4n")
+    void whenCreateOrderAuthenticatedThenNoAuditData() {
+        final var game = new Game("1234", "FIFA 23", GameGenre.SPORTS, "EA Sports", 39.99);
+        final var order = Order.accepted(game, 1);
+
+        StepVerifier.create(orderRepository.save(order))
+                .assertNext(savedOrder -> {
+                    assertThat(savedOrder.creator()).isEqualTo("b3nk4n");
+                    assertThat(savedOrder.lastModifier()).isEqualTo("b3nk4n");
                 })
                 .verifyComplete();
     }
