@@ -169,7 +169,7 @@ class OrderServiceApplicationTest {
                 .uri("/orders")
                 .bodyValue(orderRequest)
                 .exchange()
-                .expectStatus().isForbidden();
+                .expectStatus().isUnauthorized();
     }
 
     @Test
